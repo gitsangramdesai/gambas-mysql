@@ -1,0 +1,109 @@
+' Gambas class file
+
+Public $Con As New Connection
+
+Public Procedure Connect()
+
+$Con.Close() ' Close the connection
+
+$Con.Type = "mysql" ' Type of connection
+
+$Con.Host = "localhost" ' Name of the server
+
+$Con.Login = "root" ' User's name for the connection
+
+$Con.Port = "3306" ' Port to use in the connection, usually 3306
+
+$Con.Name = "playground" ' Name of the database we want to use
+
+$Con.Password = "sangram#81" ' User's password
+
+$Con.Open() ' Open the connection
+
+End
+
+Public Sub BtnSave_Click()
+Dim $Result As Result
+Dim $firstName As String
+Dim $lastName As String
+Dim $email As String
+
+$firstName = TxtFirstName.Text
+$lastName = TxtLastName.Text
+$email = TxtEmail.Text
+
+Dim $Query As String
+
+$Query = "INSERT INTO Person(firstName,lastName,email) values('" & $firstName & "','" & $lastName & "','" & $email & "');"
+
+Connect()
+
+$Result = FMain.$Con.Exec($Query)
+Message.Info("Record Saved Successfully")
+
+TxtEmail.Clear()
+TxtFirstName.Clear()
+TxtLastName.Clear()
+
+LoadAll()
+Finally ' Always executed, even if a error is raised. Warning: FINALLY must come before CATCH!
+  FMain.$Con.Close()
+
+Catch ' Executed only if there is an error
+  Message.Info("Unable to save record")
+
+End
+
+
+
+Public Sub LoadAll()
+
+Dim $Result As Result
+
+Dim $Field As ResultField
+
+Dim $rowCount As Integer = 0
+
+Dim $Query As String
+
+$Query = "SELECT * FROM Person;"
+
+Connect()
+
+$Result = FMain.$Con.Exec($Query)
+
+'define layout
+
+'define the gridview layout
+
+GridView1.header = GridView.Horizontal
+GridView1.grid = True
+GridView1.Rows.count = $Result.Count + 1
+GridView1.Columns.count = 4
+
+'column headers
+GridView1.Columns[0].text = "Id"
+GridView1.Columns[1].text = "First Name"
+GridView1.Columns[2].text = "Last Name"
+GridView1.Columns[3].text = "Email"
+
+'column width
+GridView1.Columns[0].width = 100
+GridView1.Columns[1].width = 100
+GridView1.Columns[2].width = 100
+GridView1.Columns[3].width = 100
+
+For Each $Result
+  GridView1[$rowCount, 0].Text = $Result!id
+  GridView1[$rowCount, 1].Text = $Result!firstName
+  GridView1[$rowCount, 2].Text = $Result!lastName
+  GridView1[$rowCount, 3].Text = $Result!email
+
+  $rowCount = $rowCount + 1
+Next
+
+End
+
+Public Sub Form_Open()
+      LoadAll()
+End
